@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: -725497478631290105}
   - component: {fileID: 2081161148449489512}
   - component: {fileID: 2861667779989029600}
-  - component: {fileID: 3306371196563511080}
+  - component: {fileID: 6878371222600116314}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -124,7 +124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a445f5aca17ba347af5d293806b52aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &3306371196563511080
+--- !u!114 &6878371222600116314
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -133,23 +133,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 3498822865223125460}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 78b621a28eae25846a25341a0fcd009a, type: 3}
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  NetworkTransformExpanded: 1
-  AuthorityMode: 0
+  NetworkTransformExpanded: 0
+  AuthorityMode: 1
   TickSyncChildren: 0
   UseUnreliableDeltas: 0
   SyncPositionX: 1
-  SyncPositionY: 0
+  SyncPositionY: 1
   SyncPositionZ: 1
-  SyncRotAngleX: 0
+  SyncRotAngleX: 1
   SyncRotAngleY: 1
-  SyncRotAngleZ: 0
-  SyncScaleX: 0
-  SyncScaleY: 0
-  SyncScaleZ: 0
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
   PositionThreshold: 0.001
   RotAngleThreshold: 0.01
   ScaleThreshold: 0.01
