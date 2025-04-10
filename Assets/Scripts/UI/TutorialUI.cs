@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -21,6 +22,7 @@ public class TutorialUI : MonoBehaviour {
     private void Start() {
         GameInput.Instance.OnBindingRebind += GameInput_OnBindingRebind;
         KitchenGameManager.Instance.OnStateChanged += KitchenGameManager_OnStateChanged;
+        KitchenGameManager.Instance.OnLocalPlayerReadyChanged += KitchenGameManager_OnLocalPlayerReadyChanged;
 
         UpdateVisual();
 
@@ -29,6 +31,14 @@ public class TutorialUI : MonoBehaviour {
 
     private void KitchenGameManager_OnStateChanged(object sender, System.EventArgs e) {
         if (KitchenGameManager.Instance.IsCountdownToStartActive()) {
+            Hide();
+        }
+    }
+
+    private void KitchenGameManager_OnLocalPlayerReadyChanged(object sender, EventArgs e)
+    {
+        if (KitchenGameManager.Instance.IsLocalPlayerReady())
+        {
             Hide();
         }
     }
