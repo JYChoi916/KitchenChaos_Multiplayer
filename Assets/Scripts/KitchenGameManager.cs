@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class KitchenGameManager : NetworkBehaviour {
 
@@ -26,6 +28,7 @@ public class KitchenGameManager : NetworkBehaviour {
         GameOver,
     }
 
+    [SerializeField] private Transform playerPrefab;
 
     private NetworkVariable<State> state = new NetworkVariable<State>(State.WaitingToStart);
     private bool isLocalPlayerReady;
@@ -38,6 +41,7 @@ public class KitchenGameManager : NetworkBehaviour {
 
     private Dictionary<ulong, bool> playerReadyDictionary;
     private Dictionary<ulong, bool> playerPauseDictionary;
+    private bool autoTestGamePausedState;
 
 
     private void Awake() {
@@ -56,6 +60,26 @@ public class KitchenGameManager : NetworkBehaviour {
     {
         state.OnValueChanged += State_OnValueChanged;
         isGamePaused.OnValueChanged += isGamePaused_OnValueChanged;
+
+        if (IsServer)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += SceneManager_OnLoadEventCompleted;
+        }
+    }
+
+    private void SceneManager_OnLoadEventCompleted(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    {
+        foreach(ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            Transform playerTransform = Instantiate(playerPrefab);
+            playerTransform.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
+        }
+    }
+
+    private void NetworkManager_OnClientDisconnectCallback(ulong obj)
+    {
+        autoTestGamePausedState = true;
     }
 
     private void State_OnValueChanged(State previousValue, State newValue)
@@ -136,6 +160,15 @@ public class KitchenGameManager : NetworkBehaviour {
                 break;
             case State.GameOver:
                 break;
+        }
+    }
+
+    void LateUpdate()
+    {
+        if (autoTestGamePausedState)
+        {
+            autoTestGamePausedState = false;
+            TestGamePausedState();
         }
     }
 
