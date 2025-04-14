@@ -27,18 +27,22 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
 
     [SerializeField] private Transform kitchenObjectHoldPoint;
     [SerializeField] private List<Vector3> spawnPositionList;
+    [SerializeField] private PlayerVisual playerVisual;
 
 
     private bool isWalking;
     private Vector3 lastInteractDir;
     private BaseCounter selectedCounter;
     private KitchenObject kitchenObject;
+    
+    private void Start() {
+        GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
+        GameInput.Instance.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
 
-    private void Awake() {
-        // if (Instance != null) {
-        //     Debug.LogError("There is more than one Player instance");
-        // }
-        // Instance = this;
+        PlayerData playerData = KitchenGameMultiplayer.Instance.GetPlayerDataFromClientId(OwnerClientId);
+        Color color = KitchenGameMultiplayer.Instance.GetPlayerColor(playerData.colorId);
+
+        playerVisual.SetPlayerColor(color);
     }
 
     public override void OnNetworkSpawn()
@@ -47,7 +51,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
             LocalInstance = this;
         }
 
-        transform.position = spawnPositionList[(int)OwnerClientId];
+        int playerIndex = KitchenGameMultiplayer.Instance.GetPlayerDataIndexFromClientId(OwnerClientId);
+        transform.position = spawnPositionList[playerIndex];
         OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
 
         if (IsServer)
@@ -62,11 +67,6 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
         {
             KitchenObject.DestroyKitchenObject(GetKitchenObject());
         }
-    }
-
-    private void Start() {
-        GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
-        GameInput.Instance.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
     }
 
     private void GameInput_OnInteractAlternateAction(object sender, EventArgs e) {

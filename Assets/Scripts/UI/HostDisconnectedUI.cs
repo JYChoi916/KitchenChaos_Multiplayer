@@ -46,6 +46,5 @@ public class HostDisconnectedUI : MonoBehaviour
         {
             NetworkManager.Singleton.OnClientDisconnectCallback -= NetworkManager_OnClientDisconnectedCallback;
         }
-        
     }
 }
