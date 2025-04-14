@@ -66,4 +66,10 @@ public class CharacterSelectPlayer : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
+
+    void OnDestroy()
+    {
+        KitchenGameMultiplayer.Instance.OnPlayerDataListChanged -= KitchenGameMultiplayer_OnPlayerDataListChanged;
+        CharacterSelectReady.Instance.OnReadyChanged -= CharacterSelectReady_OnReadyChanged;
+    }
 }
