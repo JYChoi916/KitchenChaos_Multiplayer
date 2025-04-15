@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 public class KitchenGameMultiplayer : NetworkBehaviour
 {
     public const int MAX_PLAYER_COUNT = 4;
+    private const string PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER = "PlayerNameMultiplayer";
 
     public static KitchenGameMultiplayer Instance { get; private set; }
 
@@ -19,19 +20,34 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     [SerializeField] private List<Color> playerColorList;
 
     private NetworkList<PlayerData> playerDataNetworkList;
+    private string playerName;
 
     void Awake()
     {
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        playerName = PlayerPrefs.GetString(PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER, "PlayerName" + UnityEngine.Random.Range(100, 1000));
+
         playerDataNetworkList = new NetworkList<PlayerData>();
         playerDataNetworkList.OnListChanged += PlayerDataNetworkList_OnListChanged;
     }
 
+    public string GetPlayerName()
+    {
+        return playerName;
+    }
+
+    public void SetPlayerName(string playerName)
+    {
+        this.playerName = playerName;
+        PlayerPrefs.SetString(PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER, playerName);
+        PlayerPrefs.Save();
+    }
+
     private void PlayerDataNetworkList_OnListChanged(NetworkListEvent<PlayerData> changeEvent)
     {
-        Debug.Log("Player data list changed: " + changeEvent.Value.clientId);
+        Debug.Log("Player data list changed: " + changeEvent.Value.clientId + ", " + changeEvent.Value.colorId +", " + changeEvent.Value.playerName);
         OnPlayerDataListChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -47,16 +63,36 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     {
         OnTryingToJoinGame?.Invoke(this, EventArgs.Empty);
         NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_Client_OnClientDisconnectCallback;
+        NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_Client_OnClientConnectedCallback;
         NetworkManager.Singleton.StartClient();
-    } 
+    }
+
+    private void NetworkManager_Client_OnClientConnectedCallback(ulong clientId)
+    {
+        Debug.Log("NetworkManager_Client_OnClientConnectedCallback : " + playerName);
+        SetPlayerNameServerRpc(GetPlayerName());
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetPlayerNameServerRpc(string playerName, ServerRpcParams serverRpcParams = default)
+    {
+        Debug.Log("SetPlayerNameServerRpc : " + playerName);
+        int playerDataIndex = GetPlayerDataIndexFromClientId(serverRpcParams.Receive.SenderClientId);
+
+        PlayerData playerData = playerDataNetworkList[playerDataIndex];
+        playerData.playerName = playerName;
+
+        playerDataNetworkList[playerDataIndex] = playerData;
+    }
 
     private void NetworkManager_OnClientConnectedCallback(ulong clientId)
     {
         Debug.Log($"Client connected: {clientId}");
         playerDataNetworkList.Add(new PlayerData{
             clientId = clientId,
-            colorId = GetFirstUnusedColorId()
+            colorId = GetFirstUnusedColorId(),
         });
+        SetPlayerNameServerRpc(GetPlayerName());
     }
 
     private void NetworkManager_ConnectionApprovalCallback(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
