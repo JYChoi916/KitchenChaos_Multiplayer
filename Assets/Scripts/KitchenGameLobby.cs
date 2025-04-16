@@ -84,15 +84,23 @@ public class KitchenGameLobby : MonoBehaviour
         Debug.Log("UnityServices.State : " + UnityServices.State);
         if(UnityServices.State != ServicesInitializationState.Initialized)
         {
+            string profile = UnityEngine.Random.Range(0, 100000).ToString();
+
             InitializationOptions initializationOption = new InitializationOptions();
-            initializationOption.SetProfile(UnityEngine.Random.Range(0, 100000).ToString());
+            initializationOption.SetProfile(profile);
 
             await UnityServices.InitializeAsync();
 
             if (this == null)
                 return;
 
+            if (AuthenticationService.Instance.SessionTokenExists)
+            {
+                AuthenticationService.Instance.SwitchProfile(profile);
+            }
+            
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            
             Debug.Log("Signed in anonymously to Unity Authentication : " + AuthenticationService.Instance.PlayerId);
             Application.wantsToQuit += Application_wantsToQuit;
         }
@@ -113,7 +121,7 @@ public class KitchenGameLobby : MonoBehaviour
     IEnumerator LeaveLobbyBeforeQuit()
     {
         var task = ForceCleanupLobbyAsync();
-        yield return new WaitUntil(() => task.IsCompleted);
+        yield return new WaitUntil(() => task.IsCompleted || joinedLobby == null);
         Application.Quit();
     }
 
@@ -250,12 +258,13 @@ public class KitchenGameLobby : MonoBehaviour
                 await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, AuthenticationService.Instance.PlayerId);
                 Debug.Log("Successfully left lobby during quit");
             }
-            joinedLobby = null;
         }
         catch (Exception e)
         {
             Debug.LogError($"Failed to cleanup lobby during quit: {e.Message}");
         }
+
+        joinedLobby = null;
     }
 
     public async void KickPlayer(string playerId) {
