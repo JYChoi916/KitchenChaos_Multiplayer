@@ -29,6 +29,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         DontDestroyOnLoad(gameObject);
 
         playerName = PlayerPrefs.GetString(PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER, "PlayerName" + UnityEngine.Random.Range(100, 1000));
+        Debug.Log(playerName);
 
         playerDataNetworkList = new NetworkList<PlayerData>();
         playerDataNetworkList.OnListChanged += PlayerDataNetworkList_OnListChanged;
